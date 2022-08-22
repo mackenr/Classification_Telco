@@ -11,6 +11,10 @@ Telco Project
 Initial hypotheses:
 and/or questions you have of the data, ideas
 
+
+Generally we are interested in factors that drive churn.
+
+
 **Sample questions**
 
 
