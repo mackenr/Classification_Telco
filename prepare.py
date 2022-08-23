@@ -275,7 +275,7 @@ def cat_to_num(df,cat_numcombos,alpha=0.05,rejected_null=True):
     if rejected_null==True:
         reject=pd.DataFrame(reject)
         reject.rename(columns={0:  "Man Whit Stat",1:"Alt p p",2:'Vars'},inplace=True)
-        display(symbols('Mann~Whitney'),symbols('We~reject~the~null~hypothesis'),reject)
+        display(symbols('Mann~Whitney'),symbols('We~reject~the~null~hypothesis'),symbols('Hence~it~is~unlikely~they~are~from~same~population'),reject)
         return reject
 
 
@@ -283,7 +283,7 @@ def cat_to_num(df,cat_numcombos,alpha=0.05,rejected_null=True):
     elif rejected_null==False:
         accept=pd.DataFrame(accept)
         accept.rename(columns={0: "Man Whit Stat",1:"Alt p",2:'Vars'},inplace=True)
-        display(symbols('Mann~Whitney'),symbols('We~accept~the~null~hypothesis'),accept)
+        display(symbols('Mann~Whitney'),symbols('We~accept~the~null~hypothesis'),symbols('Hence~it~is~likely~they~are~from~same~population'),accept)
         return accept
         
  

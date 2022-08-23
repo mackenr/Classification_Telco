@@ -20,7 +20,7 @@ def pd_DF_one_shot_info(df,log_bool=True):
 # Plot information with y-axis in log-scale
         
         
-    return display(oneshot,df.shape,df.info(),plot_u)
+    return display(oneshot,df.shape,plot_u)
 
 
 
