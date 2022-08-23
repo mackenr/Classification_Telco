@@ -27,7 +27,7 @@ def X_y_all(df):
     X_test = test.drop(columns=["churn_encoded"])
     y_test = test.churn_encoded
 
-    return X_train,y_train,X_validate,y_validate,X_test,y_test
+    return X_train,y_train,X_validate,y_validate,X_test,y_test,train,validate,test
 
 
 
@@ -316,3 +316,67 @@ def confusion_matrix_analyis(arr):
     df=df.T
     return (df)
     
+
+
+
+
+def best_model(X_train,y_train,X_validate,y_validate,X_test,y_test):
+
+
+    
+
+    # Make the model
+    forest1 = RandomForestClassifier(max_depth=10, random_state=123)
+    forest_params=forest1.get_params()
+    forest_params={'n_estimators': [10,100],'max_features':['sqrt'],'max_depth':[5,20],'criterion':['gini']}
+    
+    
+    # Fit the model (on train and only train)
+    forest1.fit(X_train, y_train)
+    
+    # Use the model
+    # We'll evaluate the model's performance on train, first
+    y_pred_forest = forest1.predict(X_train)
+    
+    
+    precision = precision_score(y_train, y_pred_forest)
+    precision
+    # grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='precision')
+    # grid_search_rf.fit(X_train, y_train)
+    # gs_rf_params = grid_search_rf.best_params_
+    # gs_rf_params.update({'random_state':random})
+    gs_rf_params={'criterion': 'gini',
+    'max_depth': 5,
+    'max_features': 'sqrt',
+    'n_estimators': 100,
+    'random_state': 4563}
+    forest_opt = RandomForestClassifier(**gs_rf_params)
+    # Fit the model (on train and only train)
+    forest_opt.fit(X_train, y_train)
+    
+    # Use the model
+    # We'll evaluate the model's performance on train, first
+    y_pred_forest_opt = forest_opt.predict(X_test)
+    
+    opt_rf= RandomForestClassifier(**gs_rf_params)
+    # Fit the model (on train and only train)
+    opt_rf_dict={}
+    opt_rf.fit(X_train, y_train)
+    opt_rf_dict[f'Parameters:{gs_rf_params}]'] = {
+    'train_score': round(opt_rf.score(X_train, y_train), 2),
+    'validate_score': round(opt_rf.score(X_validate, y_validate), 2),
+    'test_score':round(opt_rf.score(X_test, y_test), 2),
+    'diff train test': round(abs(opt_rf.score(X_train, y_train)-opt_rf.score(X_test, y_test)),2)}
+    display(symbols("Random~Forest~Test"),pd.DataFrame(opt_rf_dict))
+    # Produce the classification report on the actual y values and this model's predicted y values
+    forest_report = classification_report(y_test, y_pred_forest_opt, output_dict=True)
+    display(pd.DataFrame(forest_report))
+    # sklearn confusion matrix
+    rf_cm = confusion_matrix(y_test, y_pred_forest_opt)
+    display(Matrix(rf_cm))
+    disp = ConfusionMatrixDisplay(confusion_matrix=rf_cm, display_labels=opt_rf.classes_)
+    disp.plot()
+    plt.show() 
+
+    return   opt_rf
+
