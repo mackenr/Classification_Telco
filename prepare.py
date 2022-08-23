@@ -236,7 +236,7 @@ def cat_to_cat(df,cat_combos, alpha=(100-95)/100,rejected_chi=True):
     elif rejected_chi==False:
         accept=pd.DataFrame(accept)
         accept.rename(columns={0: "Chi Square Stat",1:"Chi Square p",2:'Vars'},inplace=True)
-        display(symbols("\chi^2"),symbols('We~accept~the~null~hypothesis'),symbols('Thus~indepence~is~likely'))
+        display(symbols("\chi^2"),symbols('We~accept~the~null~hypothesis'),symbols('Thus~independence~is~likely'))
         display(accept)
         return accept
     else:
