@@ -3,10 +3,6 @@ from prepare import *
 
 
 
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import classification_report, confusion_matrix, plot_confusion_matrix   
-
 
 
 

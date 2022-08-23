@@ -5,7 +5,8 @@ from sympy import symbols
 import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split
-
+from functools import reduce
+from itertools import combinations , product
 
 def prep_telco(df):
     telco=df

@@ -1,28 +1,40 @@
 Telco Project
 ----
 
+## Objectives:
+- Document the data science pipeline. Ensure the findings are presented clearly and the documentation is clear enough for independent reproduction
+- Create modules that can be downloaded for the sake of reproducibility.
+
+
+
 
 
 
 ## Project Description and goals:
 
+- The goal is to use data to find and explore predictive factors of churn.
+- Ultimately we hope to use these factors to drive actions which help to maintain a strong customer base and drive  profits.
+
 
 ## Questions:
-Initial hypotheses:
-and/or questions you have of the data, ideas
+
+Generally we would ask what relationships that might affect churn?
+
+Is there a distinguishable relationship between household size and churn?
+
+>This required some feature engineering.
+
+Is there a relationship between churn and paperless billing?
+
+Is there a correlation between customer duration and monthly charges?
+
+- If so, how strong is it?
+
+Due total charges have a relationship with churn?
 
 
-Generally we are interested in factors that drive churn.
 
 
-**Sample questions**
-
-
-
-* Are customers with DSL more or less likely to churn? 
-* What month are customers most likely to churn and does that depend on their contract type? 
-* Is there a service that is associated with more churn than expected? 
-* Do customers who churn have a higher average monthly spend than those who don't? 
 
 
 
@@ -322,9 +334,25 @@ password='xxxxxx'
 ```
 
 ## Executive Summary:
-Conclusions
-Key findings
-Recommendations
-Takeaways
+
+#### Conclusion:
+We beat the baseline with our models. 
+
+Hence, their predictive power is useful.
+
+More data might highlight some interesting relationships.
+
+#### Specific Recommendations:
+It would be nice to obtain more quantitative data related to the projected disposable income of each household. 
+
+#### Actionable Example:
+Offer a Telco credit card. In doing so, we are able to collect more quantitative information on credit ratings and household income. This could give us insights on the projected disposable income of each household. The goal being to maximize profits by the data gained and perhaps offering incentives that diminish churn.
+
+
+#### Closing Quote:
+>
+>“Errors using inadequate data are much less than those using no data at all.”
+(Charles Babbage, English Mathematician)
+
 
 
