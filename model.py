@@ -2,6 +2,7 @@ from acquire import *
 from prepare import *
 from preprocess import *
 
+import time
 
 from sympy import Matrix
 from sklearn.ensemble import RandomForestClassifier
@@ -15,8 +16,8 @@ from math import sqrt
 
 
 
-def X_y_all(df):
-    train,validate,test=telco_split(df,stratify='churn_encoded')
+def X_y_all(train,validate,test):
+
 
     X_train = train.drop(columns=["churn_encoded"])
     y_train = train.churn_encoded
@@ -52,19 +53,20 @@ def decision_tree(X_train,y_train,X_validate,y_validate,X_test,y_test,random):
     
     # fit the thing
     tree_model.fit(X_train, y_train)
-    y_pred_tree = tree_model.predict(X_train)
-    precision = precision_score(y_train, y_pred_tree)
-    # grid_search_tree = GridSearchCV(estimator=tree_model, param_grid=tree_params, cv= 20, scoring='precision')
-    # grid_search_tree.fit(X_train, y_train)
-    # gs_tree_params = grid_search_tree.best_params_
-    # gs_tree_params.update({'random_state':random})
+    # y_pred_tree = tree_model.predict(X_train)
+    # precision = precision_score(y_train, y_pred_tree)
+    grid_search_tree = GridSearchCV(estimator=tree_model, param_grid=tree_params, cv= 20, scoring='recall',n_jobs=-2)
+    grid_search_tree.fit(X_train, y_train)
+    gs_tree_params = grid_search_tree.best_params_
+    gs_tree_params.update({'random_state':random})
 
-    gs_tree_params={'ccp_alpha': 0.0,
- 'class_weight': 'balanced',
- 'max_depth': 8,
- 'max_features': 'log2',
- 'random_state': 4563}
+#     gs_tree_params={'ccp_alpha': 0.0,
+#  'class_weight': 'balanced',
+#  'max_depth': 8,
+#  'max_features': 'log2',
+#  'random_state': 4563}
     tree_opt= DecisionTreeClassifier(**gs_tree_params)
+    display(gs_tree_params)
     # Fit the model (on train and only train)
     tree_opt_dict={}
     tree_opt.fit(X_train, y_train)
@@ -100,17 +102,17 @@ def random_forest(X_train,y_train,X_validate,y_validate,X_test,y_test,random):
     y_pred_forest = forest1.predict(X_train)
     
     
-    precision = precision_score(y_train, y_pred_forest)
-    precision
-    # grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='precision')
-    # grid_search_rf.fit(X_train, y_train)
-    # gs_rf_params = grid_search_rf.best_params_
-    # gs_rf_params.update({'random_state':random})
-    gs_rf_params={'criterion': 'gini',
-    'max_depth': 5,
-    'max_features': 'sqrt',
-    'n_estimators': 100,
-    'random_state': 4563}
+    # precision = precision_score(y_train, y_pred_forest)
+    # precision
+    grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='recall',n_jobs=-2)
+    grid_search_rf.fit(X_train, y_train)
+    gs_rf_params = grid_search_rf.best_params_
+    gs_rf_params.update({'random_state':random})
+    # gs_rf_params={'criterion': 'gini',
+    # 'max_depth': 5,
+    # 'max_features': 'sqrt',
+    # 'n_estimators': 100,
+    # 'random_state': 4563}
     forest_opt = RandomForestClassifier(**gs_rf_params)
     # Fit the model (on train and only train)
     forest_opt.fit(X_train, y_train)
@@ -149,22 +151,22 @@ def logistic_reg( X_train,y_train,X_validate,y_validate,X_test,y_test,random):
     logit_params=logit.get_params()
     ## Hyperparameters
     penalty=['l2']
-    C_list=np.geomspace(1e-2,1e3,12)
+    C_list=np.geomspace(1e-2,1e3,6)
     class_weight_list=[{0:1, 1:99},'balanced']
     solver_list=['newton-cg','lbfgs']
     max_iter_list=range(500,1000,100)
     # intercept_scaling=np.arange(1,2,.25)
-    logit_params={'C': 5.336699231206307, 'class_weight': 'balanced', 'max_iter': 500, 'penalty': 'l2', 'solver': 'lbfgs', 'random_state': 4563}
+    logit_params={'C':C_list, 'class_weight': class_weight_list, 'max_iter': max_iter_list, 'penalty': penalty, 'solver': solver_list}
     #  fit the model on train data
     logit.fit(X_train, y_train)
     y_pred_logit = logit.predict(X_train)
-    # precision = precision_score(y_train, y_pred_logit)
-    # grid_search_log = GridSearchCV(estimator=logit, param_grid=logit_params, cv= 20, scoring='precision')
-    # grid_search_log.fit(X_train, y_train)
-    # gs_log_params = grid_search_log.best_params_
-    # gs_log_params.update({'random_state':random})
-    # display(gs_log_params)
-    gs_log_params=logit_params
+    precision = precision_score(y_train, y_pred_logit)
+    grid_search_log = GridSearchCV(estimator=logit, param_grid=logit_params, cv= 20, scoring='recall',n_jobs=-2)
+    grid_search_log.fit(X_train, y_train)
+    gs_log_params = grid_search_log.best_params_
+    gs_log_params.update({'random_state':random})
+    display(gs_log_params)
+   
 
 
 
@@ -214,12 +216,13 @@ def knn(X_train,y_train,X_validate,y_validate,X_test,y_test):
     y_pred_knn = knn.predict(X_train)
 
 
-    precision = precision_score(y_train, y_pred_knn)
+    
 
-    # grid_search_knn = GridSearchCV(estimator=knn, param_grid=knn_params, cv= 20, scoring='precision')
-    # grid_search_knn.fit(X_train, y_train)
-    # gs_knn_params = grid_search_knn.best_params_
-    gs_knn_params={'leaf_size': 20, 'n_neighbors': 6, 'p': 1, 'weights': 'uniform'}
+    grid_search_knn = GridSearchCV(estimator=knn, param_grid=knn_params, cv= 20, scoring='recall',n_jobs=-2)
+    grid_search_knn.fit(X_train, y_train)
+    gs_knn_params = grid_search_knn.best_params_
+    display(gs_knn_params)
+   
 
     knn_opt = KNeighborsClassifier(**gs_knn_params)
     # Fit the model (on train and only train)
@@ -257,14 +260,24 @@ def knn(X_train,y_train,X_validate,y_validate,X_test,y_test):
 
 
 
-def confusion_matrix_analyis(arr):
-    arr=arr
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+def confusion_matrix_analyis(tn,fp,fn,tp):
+   
     
     
-    tn=float(arr[0][0])
-    fp=float(arr[0][1])
-    fn=float(arr[1][0])
-    tp=float(arr[1][1])
 
     
     npv= tn/(tn+fn)
@@ -276,16 +289,16 @@ def confusion_matrix_analyis(arr):
     f1=2*((ppv*recall)/(ppv+ppv))
 
 
-    tn=float(f'{tn:.4g}')
-    fp=float(f'{fp:.4g}')
-    fn=float(f'{fn:.4g}')
-    tp=float(f'{tp:.4g}')
-    npv=float(f'{npv:.4g}')
-    ppv=float(f'{ppv:.4g}')
-    acc=float(f'{acc:.4g}')
-    recall=float(f'{recall:.4g}')
-    mcc=float(f'{mcc:.4g}')
-    f1=float(f'{f1:.4g}')
+    # tn=float(f'{tn:.4g}')
+    # fp=float(f'{fp:.4g}')
+    # fn=float(f'{fn:.4g}')
+    # tp=float(f'{tp:.4g}')
+    # npv=float(f'{npv:.4g}')
+    # ppv=float(f'{ppv:.4g}')
+    # acc=float(f'{acc:.4g}')
+    # recall=float(f'{recall:.4g}')
+    # mcc=float(f'{mcc:.4g}')
+    # f1=float(f'{f1:.4g}')
     
     dfindex=[
     'tn',
@@ -301,9 +314,9 @@ def confusion_matrix_analyis(arr):
 
     dfvals=[
     tn,
-    fn,
-    tp,
     fp,
+    fn,
+    tp, 
     npv,
     ppv,
     acc,
@@ -312,71 +325,222 @@ def confusion_matrix_analyis(arr):
     f1]
 
 
-    df=pd.DataFrame(data=dfvals,index=dfindex)
-    df=df.T
-    return (df)
+    df= dict(zip(dfindex, dfvals))
+   
+    return df
     
 
 
 
-
-def best_model(X_train,y_train,X_validate,y_validate,X_test,y_test):
+def best_model_recall(X_train,y_train,X_validate,y_validate,X_test,y_test,random):
 
 
     
 
     # Make the model
-    forest1 = RandomForestClassifier(max_depth=10, random_state=123)
-    forest_params=forest1.get_params()
+    forest1 = RandomForestClassifier()
+   
     forest_params={'n_estimators': [10,100],'max_features':['sqrt'],'max_depth':[5,20],'criterion':['gini']}
-    
-    
-    # Fit the model (on train and only train)
     forest1.fit(X_train, y_train)
+    
+    # # Fit the model (on train and only train)
+    # forest1.fit(X_train, y_train)
     
     # Use the model
     # We'll evaluate the model's performance on train, first
-    y_pred_forest = forest1.predict(X_train)
-    
-    
-    precision = precision_score(y_train, y_pred_forest)
-    precision
-    # grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='precision')
-    # grid_search_rf.fit(X_train, y_train)
-    # gs_rf_params = grid_search_rf.best_params_
-    # gs_rf_params.update({'random_state':random})
-    gs_rf_params={'criterion': 'gini',
-    'max_depth': 5,
-    'max_features': 'sqrt',
-    'n_estimators': 100,
-    'random_state': 4563}
+  
+    grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='recall',n_jobs=-2)
+    grid_search_rf.fit(X_train, y_train)
+    gs_rf_params = grid_search_rf.best_params_
+    gs_rf_params.update({'random_state':random})
+   
     forest_opt = RandomForestClassifier(**gs_rf_params)
     # Fit the model (on train and only train)
     forest_opt.fit(X_train, y_train)
+    y_pred_forest_opt_train= forest_opt.predict(X_train)
+    y_pred_forest_opt_val= forest_opt.predict(X_validate)
     
-    # Use the model
-    # We'll evaluate the model's performance on train, first
-    y_pred_forest_opt = forest_opt.predict(X_test)
-    
+   
+    y_pred_forest_opt_test= forest_opt.predict(X_test)
+    display(gs_rf_params)
     opt_rf= RandomForestClassifier(**gs_rf_params)
     # Fit the model (on train and only train)
     opt_rf_dict={}
     opt_rf.fit(X_train, y_train)
-    opt_rf_dict[f'Parameters:{gs_rf_params}]'] = {
-    'train_score': round(opt_rf.score(X_train, y_train), 2),
-    'validate_score': round(opt_rf.score(X_validate, y_validate), 2),
-    'test_score':round(opt_rf.score(X_test, y_test), 2),
-    'diff train test': round(abs(opt_rf.score(X_train, y_train)-opt_rf.score(X_test, y_test)),2)}
-    display(symbols("Random~Forest~Test"),pd.DataFrame(opt_rf_dict))
+    tntr, fptr, fntr, tptr = confusion_matrix(y_train, y_pred_forest_opt_train).ravel()
+    cmtrain=confusion_matrix_analyis(tntr, fptr, fntr, tptr)
+    tnv, fpv, fnv, tpv = confusion_matrix(y_validate, y_pred_forest_opt_val).ravel()
+    cmval=confusion_matrix_analyis( tnv, fpv, fnv, tpv)
+    tntst, fptst, fntst, tptst = confusion_matrix(y_test, y_pred_forest_opt_test).ravel()
+    cmtest=confusion_matrix_analyis(tntst, fptst, fntst, tptst )
+
+
+
+
+
+    # opt_rf_dict[f'Parameters:{gs_rf_params}]'] = {
+    # 'train_score': round(opt_rf.score(X_train, y_train), 2),
+    # 'validate_score': round(opt_rf.score(X_validate, y_validate), 2),
+    # 'test_score':round(opt_rf.score(X_test, y_test), 2),
+    # 'diff train test': round(abs(opt_rf.score(X_train, y_train)-opt_rf.score(X_test, y_test)),2)}
+    
+   
+    l=[cmtrain,cmval,cmtest]
+
+    d=pd.DataFrame(l,index=['train','validate','test'])
+  
+
+
+
+
+    # opt_rf_dict[f'Parameters:{gs_rf_params}]'] = d
+
+
+
+    display(symbols("Random~Forest~Test"),d)
     # Produce the classification report on the actual y values and this model's predicted y values
-    forest_report = classification_report(y_test, y_pred_forest_opt, output_dict=True)
+    forest_report = classification_report(y_test, y_pred_forest_opt_test, output_dict=True)
     display(pd.DataFrame(forest_report))
     # sklearn confusion matrix
-    rf_cm = confusion_matrix(y_test, y_pred_forest_opt)
+    rf_cm = confusion_matrix(y_test, y_pred_forest_opt_test)
+  
     display(Matrix(rf_cm))
     disp = ConfusionMatrixDisplay(confusion_matrix=rf_cm, display_labels=opt_rf.classes_)
     disp.plot()
     plt.show() 
 
-    return   opt_rf
+    feature_names = [i for i in X_train.columns.tolist()]
 
+
+
+
+
+    start_time = time.time()
+    importances = opt_rf.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in opt_rf.estimators_], axis=0)
+    elapsed_time = time.time() - start_time
+
+    print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
+
+
+
+
+
+
+    forest_importances = pd.Series(importances, index=feature_names)
+    forest_importances=forest_importances.sort_values(ascending=False)
+   
+
+    fig, ax = plt.subplots()
+    forest_importances.plot.bar(yerr=std, ax=ax)
+    ax.set_title("Feature importances using MDI")
+    ax.set_ylabel("Mean decrease in impurity")
+    plt.gcf().set_size_inches( 12,6)
+    fig.tight_layout() 
+    return   opt_rf,forest_importances
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+def best_model_precision(X_train,y_train,X_validate,y_validate,X_test,y_test,random):
+        # Make the model
+    forest1 = RandomForestClassifier()
+
+    forest_params={'n_estimators': [10,100],'max_features':['sqrt'],'max_depth':[5,20],'criterion':['gini']}
+    forest1.fit(X_train, y_train)
+
+    # # Fit the model (on train and only train)
+    # forest1.fit(X_train, y_train)
+
+    # Use the model
+    # We'll evaluate the model's performance on train, first
+
+    grid_search_rf = GridSearchCV(estimator=forest1, param_grid=forest_params, cv= 20, scoring='precision',n_jobs=-2)
+    grid_search_rf.fit(X_train, y_train)
+    gs_rf_params = grid_search_rf.best_params_
+    gs_rf_params.update({'random_state':random})
+
+    forest_opt = RandomForestClassifier(**gs_rf_params)
+    # Fit the model (on train and only train)
+    forest_opt.fit(X_train, y_train)
+    y_pred_forest_opt_train= forest_opt.predict(X_train)
+    y_pred_forest_opt_val= forest_opt.predict(X_validate)
+
+
+    y_pred_forest_opt_test= forest_opt.predict(X_test)
+    display(gs_rf_params)
+    opt_rf= RandomForestClassifier(**gs_rf_params)
+    # Fit the model (on train and only train)
+    opt_rf_dict={}
+    opt_rf.fit(X_train, y_train)
+    tntr, fptr, fntr, tptr = confusion_matrix(y_train, y_pred_forest_opt_train).ravel()
+    cmtrain=confusion_matrix_analyis(tntr, fptr, fntr, tptr)
+    tnv, fpv, fnv, tpv = confusion_matrix(y_validate, y_pred_forest_opt_val).ravel()
+    cmval=confusion_matrix_analyis( tnv, fpv, fnv, tpv)
+    tntst, fptst, fntst, tptst = confusion_matrix(y_test, y_pred_forest_opt_test).ravel()
+    cmtest=confusion_matrix_analyis(tntst, fptst, fntst, tptst )
+    # opt_rf_dict[f'Parameters:{gs_rf_params}]'] = {
+    # 'train_score': round(opt_rf.score(X_train, y_train), 2),
+    # 'validate_score': round(opt_rf.score(X_validate, y_validate), 2),
+    # 'test_score':round(opt_rf.score(X_test, y_test), 2),
+    # 'diff train test': round(abs(opt_rf.score(X_train, y_train)-opt_rf.score(X_test, y_test)),2)}
+
+
+    l=[cmtrain,cmval,cmtest]
+    d=pd.DataFrame(l,index=['train','validate','test'])
+
+    # opt_rf_dict[f'Parameters:{gs_rf_params}]'] = d
+    display(symbols("Random~Forest~Test"),d)
+    # Produce the classification report on the actual y values and this model's predicted y values
+    forest_report = classification_report(y_test, y_pred_forest_opt_test, output_dict=True)
+    display(pd.DataFrame(forest_report))
+    # sklearn confusion matrix
+    rf_cm = confusion_matrix(y_test, y_pred_forest_opt_test)
+
+    display(Matrix(rf_cm))
+    disp = ConfusionMatrixDisplay(confusion_matrix=rf_cm, display_labels=opt_rf.classes_)
+    disp.plot()
+    plt.show()
+
+    feature_names = [i for i in X_train.columns.tolist()]
+
+
+
+
+
+    start_time = time.time()
+    importances = opt_rf.feature_importances_
+    std = np.std([tree.feature_importances_ for tree in opt_rf.estimators_], axis=0)
+    elapsed_time = time.time() - start_time
+
+    print(f"Elapsed time to compute the importances: {elapsed_time:.3f} seconds")
+
+
+
+
+
+
+    forest_importances = pd.Series(importances, index=feature_names)
+    forest_importances=forest_importances.sort_values(ascending=False)
+    plt.figure(figsize=(10,6))
+    fig, ax = plt.subplots()
+    forest_importances.plot.bar(yerr=std, ax=ax)
+    ax.set_title("Feature importances using MDI")
+    ax.set_ylabel("Mean decrease in impurity")
+    plt.gcf().set_size_inches( 12,6)
+    fig.tight_layout() 
+    return   opt_rf,forest_importances
+#   accuracy,recall
